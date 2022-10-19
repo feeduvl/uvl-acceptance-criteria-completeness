@@ -1,0 +1,167 @@
+package de.uhd.ifi.se.accompleteness.rest;
+
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
+
+import de.uhd.ifi.se.accompleteness.calculation.wordnet.WordnetCompletenessCalculator;
+import de.uhd.ifi.se.accompleteness.extractor.ACExtractor;
+import de.uhd.ifi.se.accompleteness.extractor.USExtractor;
+import de.uhd.ifi.se.accompleteness.extractor.openie.OpenIEACExtractor;
+import de.uhd.ifi.se.accompleteness.extractor.openie.OpenIEUSExtractor;
+import de.uhd.ifi.se.accompleteness.model.CompletenessCalcResult;
+import de.uhd.ifi.se.accompleteness.model.CompletenessResponse;
+import de.uhd.ifi.se.accompleteness.model.NLPResultSingle;
+import de.uhd.ifi.se.accompleteness.model.Relationship;
+import de.uhd.ifi.se.accompleteness.model.Topic;
+import de.uhd.ifi.se.acgen.model.UserStory;
+import de.uhd.ifi.se.acgen.model.UvlResponse;
+import spark.Request;
+import spark.Response;
+
+public class RunRest {
+        /** 
+     * Creates a response for requests to the /run API and starts the
+     * acceptance criteria generation process
+     * 
+     * @param req the HTTP request sent to the /run endpoint whose payload
+     * contains a dataset of user stories and the debug parameter
+     * @param res the HTTP response containing header and HTTP status code
+     * information
+     * @return an object used as payload for the HTTP response which contains
+     * acceptance criteria, log messages and metrics in the form of a 
+     * {@link UvlResponse} object on success, or an error message in the form
+     * of a string if an exception is thrown and catched
+     */
+    public Object createResponse(Request req, Response res) {
+        try {
+            // Start measuring the runtime
+            // long start = System.currentTimeMillis();
+
+            // Interpret the payload of the HTTP request as JSON and extract
+            // the user stories (called documents) and parameters
+            JsonObject jsonRequest = new Gson().fromJson(req.body(), JsonObject.class);
+            JsonArray documents = jsonRequest.get("dataset").getAsJsonObject().get("documents").getAsJsonArray();
+            boolean debug = jsonRequest.get("params").getAsJsonObject().get("debug").getAsBoolean();
+            boolean filterUSTopics = jsonRequest.get("params").getAsJsonObject().get("filterUSTopics").getAsBoolean();
+
+            // Generate acceptance criteria and put them into the form required
+            // by the API
+            JsonArray response = addAcceptanceCriteriaToResponse(documents, debug, filterUSTopics);
+
+            //response.addMetric("count", documents.size());
+
+            // Stop measuring the runtime
+            // long finish = System.currentTimeMillis();
+            // response.addMetric("runtime", finish - start);
+            res.header("Content-Type", "application/json");
+            return response;     
+        } catch (Exception e) {
+            res.status(500);
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            e.printStackTrace(pw);
+            // String sStackTrace = sw.toString();
+            return "<h1>500 Internal Server Error</h1><code>" + req.body().replaceAll("\\n", "<br>") + "</code>";
+        }
+    }
+
+        /** 
+     * Starts the acceptance criteria generation and creates a
+     * {@link UvlResponse} which contains acceptance criteria, log messages and
+     * metrics in the syntax required by the FeedUVL API.
+     * 
+     * @param documents a part of the HTTP request payload containing the user
+     * stories
+     * @param debug whether to include debug information in the HTTP response.
+     * @return a object containing acceptance criteria, log
+     * messages and metrics in the syntax required by the FeedUVL API.
+     * 
+     * @see UvlResponse
+     * @see <a href="https://github.com/feeduvl/uvl-acceptance-criteria/blob/main/swagger.yaml">https://github.com/feeduvl/uvl-acceptance-criteria/blob/main/swagger.yaml</a>
+     * for the API documentation
+     */
+    public static JsonArray addAcceptanceCriteriaToResponse(JsonArray documents, boolean debug, boolean filterUSTopics) {
+        JsonArray responseList = new JsonArray();
+        int errors = 0;
+        int warnings = 0;
+        int infos = 0;
+        for (JsonElement document : documents) { // for every user story
+            int userStoryNumber = document.getAsJsonObject().get("number").getAsInt();
+            String userStoryText = document.getAsJsonObject().get("user_story").getAsString();
+            String acceptanceText = document.getAsJsonObject().get("acceptance_criterion").getAsString();
+            CompletenessResponse response = new CompletenessResponse(userStoryNumber);
+            try {
+                // Extract the user story from the string
+                UserStory userStory = new UserStory(userStoryText);
+
+                USExtractor usExtractor = new OpenIEUSExtractor();
+                NLPResultSingle usNlpResult = usExtractor.extract(userStory, debug, filterUSTopics);
+                for (Topic topic: usNlpResult.getTopics()) {
+                    response.addUSTopic(topic);
+                }
+
+                for (Relationship relationship : usNlpResult.getRelationships()) {
+                    response.addUSRelationship(relationship);
+                }
+
+                if (!userStory.containsReason()) {
+                    // If the user story does not contain a reason (i.e., the
+                    // “so that” part), an info message is added to the
+                    // response.
+                    infos += 1;
+                    //response.addAcceptanceCriterion(new AcceptanceCriterion("A reason could not be found. If you wish to include a reason, please make sure the reason of the user story is declared after the role and the goal using the syntax “so that [reason]”.", AcceptanceCriterionType.INFO), userStoryNumber);
+                }
+                if (userStory.wasCutAtListOrNote()) {
+                    // If the user story was cut at a note or bullet point list
+                    // and it is likely that information was lost by that,
+                    // a warning message is added to the response.
+                    warnings += 1;
+                    //response.addAcceptanceCriterion(new AcceptanceCriterion("The user story was cut at a bullet point list or a part of text starting with “\\\\”. Please refrain from using these syntaxes within a user story and make sure to end your user story with a sentence period.", AcceptanceCriterionType.WARNING), userStoryNumber);
+                }
+
+                ACExtractor acExtractor = new OpenIEACExtractor();
+                NLPResultSingle acNlpResult = acExtractor.extract(acceptanceText, debug);
+
+                for (Topic topic: acNlpResult.getTopics()) {
+                    response.addACTopic(topic);
+                }
+
+                for (Relationship relationship : acNlpResult.getRelationships()) {
+                    response.addACRelationship(relationship);
+                }
+
+                CompletenessCalcResult calcResult = new WordnetCompletenessCalculator().calculate_completeness(usNlpResult, acNlpResult);
+                String metricName = calcResult.getMetrics().entrySet().iterator().next().getKey();
+                double metricValue = calcResult.getMetrics().entrySet().iterator().next().getValue();
+                response.addMetric(metricName, metricValue);
+                responseList.add(response.toJson());
+            } catch (Exception e) {
+                // If an exception is thrown (e.g. if the user story could not
+                // be identified), the exception message is added as an error
+                // message to the response, and the next user story can be
+                // processed.
+                JsonObject objectTest = new JsonObject();
+                StringWriter sw = new StringWriter();
+                PrintWriter pw = new PrintWriter(sw);
+                e.printStackTrace(pw);
+                objectTest.add(e.getMessage(), new JsonPrimitive(sw.toString()));
+                responseList.add(objectTest);
+                //response.addAcceptanceCriterion(new AcceptanceCriterion(e.getMessage(), AcceptanceCriterionType.ERROR), userStoryNumber);
+            }
+        }
+
+        // Add the log message counts to the response
+        JsonObject objectTest = new JsonObject();
+        objectTest.add("errorCount", new JsonPrimitive(errors));
+        responseList.add(objectTest);
+        // response.addMetric("warningCount", warnings);
+        // response.addMetric("infoCount", infos);
+        return responseList;
+    }
+}
