@@ -3,7 +3,7 @@
 [![License: GPL 3.0](https://img.shields.io/badge/License-GPL%203.0-blue.svg)](https://www.gnu.org/licenses/gpl-3.0.de.html)
 ## About
 
-This is a microservice that can run in a docker container and checks acceptance criteria for completeness regarding their respecitive user stories.
+This is a microservice that can run in a docker container and checks acceptance criteria for completeness regarding their respective user stories.
 
 ## REST API
 
