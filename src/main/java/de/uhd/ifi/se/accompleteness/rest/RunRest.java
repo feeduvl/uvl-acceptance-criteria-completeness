@@ -89,12 +89,11 @@ public class RunRest {
     public static JsonArray addAcceptanceCriteriaToResponse(JsonArray documents, boolean debug, boolean filterUSTopics) {
         JsonArray responseList = new JsonArray();
         int errors = 0;
-        int warnings = 0;
-        int infos = 0;
         for (JsonElement document : documents) { // for every user story
-            int userStoryNumber = document.getAsJsonObject().get("number").getAsInt();
-            String userStoryText = document.getAsJsonObject().get("user_story").getAsString();
-            String acceptanceText = document.getAsJsonObject().get("acceptance_criterion").getAsString();
+            int userStoryNumber = document.getAsJsonObject().get("id").getAsInt();
+            String inputText = document.getAsJsonObject().get("text").getAsString();
+            String userStoryText = extractUserStoryString(inputText);
+            String acceptanceText = extractAcceptanceCriteriaString(inputText);
             CompletenessResponse response = new CompletenessResponse(userStoryNumber);
             try {
                 // Extract the user story from the string
@@ -108,21 +107,6 @@ public class RunRest {
 
                 for (Relationship relationship : usNlpResult.getRelationships()) {
                     response.addUSRelationship(relationship);
-                }
-
-                if (!userStory.containsReason()) {
-                    // If the user story does not contain a reason (i.e., the
-                    // “so that” part), an info message is added to the
-                    // response.
-                    infos += 1;
-                    //response.addAcceptanceCriterion(new AcceptanceCriterion("A reason could not be found. If you wish to include a reason, please make sure the reason of the user story is declared after the role and the goal using the syntax “so that [reason]”.", AcceptanceCriterionType.INFO), userStoryNumber);
-                }
-                if (userStory.wasCutAtListOrNote()) {
-                    // If the user story was cut at a note or bullet point list
-                    // and it is likely that information was lost by that,
-                    // a warning message is added to the response.
-                    warnings += 1;
-                    //response.addAcceptanceCriterion(new AcceptanceCriterion("The user story was cut at a bullet point list or a part of text starting with “\\\\”. Please refrain from using these syntaxes within a user story and make sure to end your user story with a sentence period.", AcceptanceCriterionType.WARNING), userStoryNumber);
                 }
 
                 ACExtractor acExtractor = new OpenIEACExtractor();
@@ -160,8 +144,20 @@ public class RunRest {
         JsonObject objectTest = new JsonObject();
         objectTest.add("errorCount", new JsonPrimitive(errors));
         responseList.add(objectTest);
-        // response.addMetric("warningCount", warnings);
-        // response.addMetric("infoCount", infos);
         return responseList;
+    }
+
+    private static String extractUserStoryString (String inputString) {
+        inputString = inputString.replace("\n", "");
+        int start = inputString.indexOf("###");
+        int end = inputString.indexOf("###", start + 1);
+        return inputString.substring(start + 3, end);
+    }
+
+    private static String extractAcceptanceCriteriaString (String inputString) {
+        inputString = inputString.replace("\n", "");
+        int start = inputString.indexOf("+++");
+        int end = inputString.indexOf("+++", start + 1);
+        return inputString.substring(start + 3, end);
     }
 }
