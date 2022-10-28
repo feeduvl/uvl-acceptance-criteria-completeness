@@ -19,8 +19,8 @@ import de.uhd.ifi.se.accompleteness.model.CompletenessResponse;
 import de.uhd.ifi.se.accompleteness.model.NLPResultSingle;
 import de.uhd.ifi.se.accompleteness.model.Relationship;
 import de.uhd.ifi.se.accompleteness.model.Topic;
-import de.uhd.ifi.se.acgen.model.UserStory;
-import de.uhd.ifi.se.acgen.model.UvlResponse;
+import de.uhd.ifi.se.accompleteness.model.UserStory;
+import de.uhd.ifi.se.accompleteness.model.UvlResponse;
 import spark.Request;
 import spark.Response;
 

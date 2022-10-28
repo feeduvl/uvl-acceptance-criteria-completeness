@@ -1,7 +1,7 @@
 package de.uhd.ifi.se.accompleteness;
 
 import de.uhd.ifi.se.accompleteness.rest.RunRest;
-import de.uhd.ifi.se.acgen.rest.StatusRest;
+import de.uhd.ifi.se.accompleteness.rest.StatusRest;
 
 import static spark.Spark.*;
 

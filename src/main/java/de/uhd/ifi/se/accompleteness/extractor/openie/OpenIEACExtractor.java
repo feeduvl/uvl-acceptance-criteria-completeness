@@ -9,7 +9,6 @@ import de.uhd.ifi.se.accompleteness.extractor.ACExtractor;
 import de.uhd.ifi.se.accompleteness.model.NLPResultSingle;
 import de.uhd.ifi.se.accompleteness.model.Relationship;
 import de.uhd.ifi.se.accompleteness.model.Topic;
-import de.uhd.ifi.se.acgen.exception.TokenNotFoundException;
 import edu.stanford.nlp.ie.util.RelationTriple;
 import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.naturalli.NaturalLogicAnnotations;
@@ -20,8 +19,7 @@ import edu.stanford.nlp.util.CoreMap;
 public class OpenIEACExtractor implements ACExtractor {
 
     @Override
-    public NLPResultSingle extract(String acceptanceCriterion, boolean debug)
-            throws TokenNotFoundException {
+    public NLPResultSingle extract(String acceptanceCriterion, boolean debug) {
 
         List<Topic> topics = new ArrayList<Topic>();
         List<Relationship> relationships = new ArrayList<>();

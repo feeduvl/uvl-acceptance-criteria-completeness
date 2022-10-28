@@ -1,8 +1,8 @@
 package de.uhd.ifi.se.accompleteness.extractor;
 
 import de.uhd.ifi.se.accompleteness.model.NLPResultSingle;
-import de.uhd.ifi.se.acgen.exception.TokenNotFoundException;
-import de.uhd.ifi.se.acgen.model.UserStory;
+import de.uhd.ifi.se.accompleteness.exception.TokenNotFoundException;
+import de.uhd.ifi.se.accompleteness.model.UserStory;
 
 /**
  * Generates acceptance criteria for a user story.
@@ -19,6 +19,6 @@ public interface USExtractor {
      * as the verb or the subject could not be identified by the Stanford
      * CoreNLP tools.
      */
-    public NLPResultSingle extract(UserStory userStory, boolean debug, boolean filterUSTopics) throws TokenNotFoundException;
+    public NLPResultSingle extract(UserStory userStory, boolean debug, boolean filterUSTopics);
 
 }

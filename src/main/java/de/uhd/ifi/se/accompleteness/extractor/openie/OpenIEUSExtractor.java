@@ -1,9 +1,9 @@
 package de.uhd.ifi.se.accompleteness.extractor.openie;
 
-import de.uhd.ifi.se.acgen.exception.TokenNotFoundException;
+import de.uhd.ifi.se.accompleteness.exception.TokenNotFoundException;
 import de.uhd.ifi.se.accompleteness.extractor.USExtractor;
 import de.uhd.ifi.se.accompleteness.extractor.openie.util.StringSimilarity;
-import de.uhd.ifi.se.acgen.model.UserStory;
+import de.uhd.ifi.se.accompleteness.model.UserStory;
 import edu.stanford.nlp.ie.util.RelationTriple;
 import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.naturalli.NaturalLogicAnnotations;
@@ -35,7 +35,7 @@ public class OpenIEUSExtractor implements USExtractor {
      * 
      * @see Generator
      */
-    public NLPResultSingle extract(UserStory userStory, boolean debug, boolean filterUSTopics) throws TokenNotFoundException {
+    public NLPResultSingle extract(UserStory userStory, boolean debug, boolean filterUSTopics) {
         String userStoryString = userStory.getGoal();
 
         List<Topic> topics = new ArrayList<Topic>();
