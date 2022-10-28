@@ -40,7 +40,7 @@ public class App {
      * @param args The command line arguments passed to the application
      */
     public static void main( String[] args ) {
-        new App(9696);
+        new App(9640);
     }
     
 }

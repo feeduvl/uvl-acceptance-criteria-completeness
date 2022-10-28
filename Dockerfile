@@ -16,6 +16,6 @@ COPY . .
 RUN _JAVA_OPTIONS="-Xmx2g" mvn package
 RUN mvn site
 
-EXPOSE 9696
+EXPOSE 9640
 
 CMD ["mvn", "exec:java"]
