@@ -1,6 +1,5 @@
 package de.uhd.ifi.se.accompleteness.model;
 
-
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -8,17 +7,14 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-
-import de.uhd.ifi.se.accompleteness.exception.TokenNotFoundException;
 import de.uhd.ifi.se.accompleteness.exception.NoUserStoryException;
-import de.uhd.ifi.se.accompleteness.model.AcceptanceCriterion;
 
 /**
  * Stores a user story consisting of a role, a goal and a reason, and allows
  * for extraction of such user story from a larger document. Also stores
  * acceptance criteria generated for the user story.
  * 
- * The user story syntax is given as “As a [role], I want [goal] (so that 
+ * The user story syntax is given as “As a [role], I want [goal] (so that
  * [reason]).”
  * 
  * @see Generator
@@ -64,7 +60,7 @@ public class UserStory {
      * 
      * @param userStoryString the string containing a user story
      * @throws NoUserStoryException if the string does not contain a valid user
-     * story according to the user story syntax.
+     *                              story according to the user story syntax.
      */
     public UserStory(String userStoryString) throws NoUserStoryException {
         wasCutAtListOrNote = false;
@@ -75,13 +71,12 @@ public class UserStory {
         identifyParts(userStoryString.replaceAll("\\.{3,}", "…"));
     };
 
-    
-    /** 
+    /**
      * Extract role, goal and reason of a user story from a string.
      * 
      * @param userStoryString the string containing a user story
      * @throws NoUserStoryException if the string does not contain a valid user
-     * story according to the user story syntax.
+     *                              story according to the user story syntax.
      * 
      * @see UserStory
      */
@@ -90,7 +85,8 @@ public class UserStory {
         if (indexAsA == -1) {
             // if a user story does not contain a role specified using the
             // syntax “As a(n) [role]”
-            throw new NoUserStoryException("A role could not be found. Please make sure the role of the user story is declared using the syntax \"As a(n) [role]\".");
+            throw new NoUserStoryException(
+                    "A role could not be found. Please make sure the role of the user story is declared using the syntax \"As a(n) [role]\".");
         }
 
         // cut the user story string to start at the beginning of the role part
@@ -114,7 +110,8 @@ public class UserStory {
         if (indexIWant == -1) {
             // if a user story does not contain a goal specified using the
             // syntax “I want [goal]”
-            throw new NoUserStoryException("A goal could not be found. Please make sure the goal of the user story is declared after the role using the syntax \"I want [goal]\".");
+            throw new NoUserStoryException(
+                    "A goal could not be found. Please make sure the goal of the user story is declared after the role using the syntax \"I want [goal]\".");
         }
 
         // some sanitizing happens here, i.e., remove asterisks (usually used
@@ -130,29 +127,32 @@ public class UserStory {
             // reason was found and is asked to provide one.
 
             // some sanitizing happens here, see above.
-            goal = shortenedUserStoryString.substring(indexIWant, indexSentencePeriod).replaceAll("\\*", "").replaceAll("\\s+", " ");
+            goal = shortenedUserStoryString.substring(indexIWant, indexSentencePeriod).replaceAll("\\*", "")
+                    .replaceAll("\\s+", " ");
             reason = "";
         } else {
             // The user story does contain a reason.
 
             // some sanitizing happens here, see above.
-            goal = shortenedUserStoryString.substring(indexIWant, indexSoThat).replaceAll("\\*", "").replaceAll("\\s+", " ");
-            reason = shortenedUserStoryString.substring(indexSoThat, indexSentencePeriod).replaceAll("\\*", "").replaceAll("\\s+", " ");
+            goal = shortenedUserStoryString.substring(indexIWant, indexSoThat).replaceAll("\\*", "").replaceAll("\\s+",
+                    " ");
+            reason = shortenedUserStoryString.substring(indexSoThat, indexSentencePeriod).replaceAll("\\*", "")
+                    .replaceAll("\\s+", " ");
         }
     }
 
-    
-    /** 
+    /**
      * Determines whether a period denotes the end of a sentence.
      * 
      * @param userStoryString a string containing the sentence
-     * @param indexOfPeriod an index of the period to be checked
+     * @param indexOfPeriod   an index of the period to be checked
      * @return {@code true} if the period at the index denotes the end of a
-     * sentence
+     *         sentence
      */
     private boolean isSentenceEnding(String userStoryString, int indexOfPeriod) {
         try {
-            List<String> abbreviations = Arrays.asList("e.g.", "etc.", "approx.", "i.e.", "cf.", "encl.", "p.a.", "Dr.", "Prof.", "no.");
+            List<String> abbreviations = Arrays.asList("e.g.", "etc.", "approx.", "i.e.", "cf.", "encl.", "p.a.", "Dr.",
+                    "Prof.", "no.");
             if (Character.isWhitespace(userStoryString.charAt(indexOfPeriod + 1))) {
                 // here, the period is followed by a whitespace character
                 for (String abbreviation : abbreviations) {
@@ -167,7 +167,7 @@ public class UserStory {
                 // sentence period
                 return true;
             }
-            // here, the period is not followed by a whitespace character and 
+            // here, the period is not followed by a whitespace character and
             // thereby most likely not a sentence period
             return false;
         } catch (StringIndexOutOfBoundsException e) {
@@ -176,17 +176,16 @@ public class UserStory {
             return true;
         }
     }
-    
-    
-    /** 
+
+    /**
      * Finds the index of a sentence period in or the end of a string,
      * whichever occurs first.
      * 
      * @param shortenedUserStoryString the string to be searched
-     * @param indexOfLastKeyword the index before which a sentence period
-     * is ignored
+     * @param indexOfLastKeyword       the index before which a sentence period
+     *                                 is ignored
      * @return the index of a sentence period in or the end of the string,
-     * whichever occurs first.
+     *         whichever occurs first.
      */
     private int findSentencePeriodOrEndOfString(String shortenedUserStoryString, int indexOfLastKeyword) {
         int indexOfPeriod = indexOfLastKeyword;
@@ -199,10 +198,10 @@ public class UserStory {
                 // the period indeed denotes a sentence ending, so
                 return indexOfPeriod + 1; // return its index
             }
-        } while (indexOfPeriod != -1);  // while there is still a sentence
-                                        // period that has not been
-                                        // investigated
-        
+        } while (indexOfPeriod != -1); // while there is still a sentence
+                                       // period that has not been
+                                       // investigated
+
         // here, no sentence period has been found
         if (containsListOrNote) {
             // it is very likely that the sentence period has been removed
@@ -212,8 +211,7 @@ public class UserStory {
         return shortenedUserStoryString.length(); // the end of the string
     }
 
-    
-    /** 
+    /**
      * Finds the index of a bullet point list or a note, whichever occurs
      * first. Returns the end of the string, if none is found.
      * 
@@ -221,7 +219,7 @@ public class UserStory {
      * 
      * * …
      * 
-     * or 
+     * or
      * 
      * - …
      * 
@@ -235,7 +233,7 @@ public class UserStory {
      * 
      * @param userStoryString the string to be searched
      * @return the index of a bullet point list, a note or the end of the
-     * string, whichever occurs first.
+     *         string, whichever occurs first.
      */
     private int indexOfListOrNote(String userStoryString) {
         Pattern newLineandStarOrDash = Pattern.compile("\\R\\s*(\\*|-|\\\\\\\\)\\s");
@@ -251,8 +249,7 @@ public class UserStory {
         return userStoryString.length(); // the end of the string
     }
 
-    
-    /** 
+    /**
      * Composes the string of the user story from the role, goal and reason
      * parts.
      * 
@@ -262,8 +259,7 @@ public class UserStory {
         return role + goal + reason;
     }
 
-    
-    /** 
+    /**
      * Returns the role of the user story.
      * 
      * @return the role of the user story
@@ -272,8 +268,7 @@ public class UserStory {
         return role;
     }
 
-    
-    /** 
+    /**
      * Returns the goal of the user story.
      * 
      * @return the goal of the user story
@@ -282,8 +277,7 @@ public class UserStory {
         return goal;
     }
 
-    
-    /** 
+    /**
      * Returns the reason of the user story.
      * 
      * @return the reason of the user story
@@ -292,8 +286,7 @@ public class UserStory {
         return reason;
     }
 
-    
-    /** 
+    /**
      * Returns a boolean value indicating whether the user story has a reason.
      * 
      * @return {@code true} if the user story has a reason
@@ -302,14 +295,13 @@ public class UserStory {
         return !reason.equals("");
     }
 
-    
-    /** 
+    /**
      * Returns a boolean value indicating whether the user story was cut at a
      * bullet point list or note and it is likely that information was lost
      * during that process.
      *
      * @return {@code true} if the user story was cut at a bullet point list or
-     * note
+     *         note
      */
     public boolean wasCutAtListOrNote() {
         return wasCutAtListOrNote;
