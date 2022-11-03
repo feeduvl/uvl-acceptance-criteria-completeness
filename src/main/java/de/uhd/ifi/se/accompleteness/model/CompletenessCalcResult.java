@@ -14,17 +14,17 @@ public class CompletenessCalcResult {
         this.metrics = metrics;
     }
 
-    Map<Topic, Topic> matchedTopics;
+    Map<String, String> matchedTopics;
 
-    public Map<Topic, Topic> getMatchedTopics() {
+    public Map<String, String> getMatchedTopics() {
         return matchedTopics;
     }
 
-    public void setMatchedTopics(Map<Topic, Topic> matchedTopics) {
+    public void setMatchedTopics(Map<String, String> matchedTopics) {
         this.matchedTopics = matchedTopics;
     }
 
-    public CompletenessCalcResult(Map<String, Double> metrics, Map<Topic, Topic> matchedTopics) {
+    public CompletenessCalcResult(Map<String, Double> metrics, Map<String, String> matchedTopics) {
         this.metrics = metrics;
         this.matchedTopics = matchedTopics;
     }
