@@ -1,5 +1,6 @@
 package de.uhd.ifi.se.accompleteness.extractor.openie;
 
+import de.uhd.ifi.se.accompleteness.extractor.ExtractionParams;
 import de.uhd.ifi.se.accompleteness.extractor.USExtractor;
 import de.uhd.ifi.se.accompleteness.extractor.openie.util.StringSimilarity;
 import de.uhd.ifi.se.accompleteness.model.UserStory;
@@ -23,7 +24,6 @@ import de.uhd.ifi.se.accompleteness.model.Topic;
 public class OpenIEUSExtractor implements USExtractor {
 
     private static final List<String> exclude_tokens = Arrays.asList("I");
-    private static final double SIMILARITY_THRESHOLD = 0.3;
 
     /**
      * {@inheritDoc}
@@ -33,47 +33,46 @@ public class OpenIEUSExtractor implements USExtractor {
      * 
      * @see Generator
      */
-    public NLPResultSingle extract(UserStory userStory, boolean debug, boolean filterUSTopics) {
+    public NLPResultSingle extract(UserStory userStory, ExtractionParams params) {
+        OpenIEExtractionParams paramsOpenIE = (OpenIEExtractionParams) params;
         String userStoryString = userStory.getGoal();
 
         List<Topic> topics = new ArrayList<Topic>();
         List<Relationship> relationships = new ArrayList<>();
 
-        // Preprocess the user story string
-        // userStoryString = preprocessing(userStoryString);
-        // if (debug) {
-        // // If debug information have been requested, the preprocessed user
-        // // story string is added as a debug message.
-        // topics.add(new Topic(userStoryString));
-        // }
-
         // Set up the NLP pipeline and annotate the preprocessed user story
         // string
         Properties props = new Properties();
         props.setProperty("annotators", "tokenize,ssplit,pos,lemma,depparse,natlog,openie");
-        // props.setProperty("ssplit.isOneSentence", "true");
-        // props.setProperty("regexner.mapping",
-        // "src/main/java/de/uhd/ifi/se/acgen/generator/gherkin/regexner/ui-mapping.txt");
         StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
         Annotation document = new Annotation(userStoryString);
         pipeline.annotate(document);
+
         for (CoreMap sentence : document.get(CoreAnnotations.SentencesAnnotation.class)) {
             // Get the OpenIE triples for the sentence
             Collection<RelationTriple> triples = sentence.get(NaturalLogicAnnotations.RelationTriplesAnnotation.class);
             // Print the triples
             for (RelationTriple triple : triples) {
-                if (triple.confidence > 0.5) {
+                if (triple.confidence > paramsOpenIE.getOpenIEConfidence()) {
                     Topic subjectTopic = new Topic(triple.subjectLemmaGloss(), triple.subject.get(0).tag());
                     Topic objectTopic = new Topic(triple.objectLemmaGloss(), triple.object.get(0).tag());
                     Relationship relationship = new Relationship(subjectTopic, objectTopic,
                             triple.relationLemmaGloss());
                     if (!(topics.contains(subjectTopic))) {
-                        if (check_sim_threshold(topics, subjectTopic)) {
+                        if (paramsOpenIE.isFilterUSTopicsSimilarity()) {
+                            if (check_sim_threshold(topics, subjectTopic, paramsOpenIE)) {
+                                topics.add(subjectTopic);
+                            }
+                        } else {
                             topics.add(subjectTopic);
                         }
                     }
                     if (!(topics.contains(objectTopic))) {
-                        if (check_sim_threshold(topics, objectTopic)) {
+                        if (paramsOpenIE.isFilterUSTopicsSimilarity()) {
+                            if (check_sim_threshold(topics, objectTopic, paramsOpenIE)) {
+                                topics.add(objectTopic);
+                            }
+                        } else {
                             topics.add(objectTopic);
                         }
                     }
@@ -83,33 +82,44 @@ public class OpenIEUSExtractor implements USExtractor {
                 }
             }
         }
-        if (filterUSTopics) {
+        if (paramsOpenIE.isFilterUSTopicsExcludeList()) {
             topics = filter_topics(topics);
+        }
+        if (paramsOpenIE.isFilterUSTopicsCompositions()) {
+            topics = filterCompositeTopics(topics, paramsOpenIE);
         }
         return new NLPResultSingle(relationships, topics);
     }
 
-    private boolean check_sim_threshold(List<Topic> topics, Topic topic) {
-        String topicString = topic.toString();
-        String[] topicTokens = topicString.split(" ");
-        if (topicTokens.length < 3)
-            return true;
-        int topicsAlreadyFound = 0;
-        for (String topicToken : topicTokens) {
-            for (Topic topic1 : topics) {
-                if (topic1.toString().equals(topicToken))
-                    topicsAlreadyFound++;
-            }
-        }
-        if (topicsAlreadyFound == topicTokens.length)
-            return false;
+    private boolean check_sim_threshold(List<Topic> topics, Topic topic, OpenIEExtractionParams params) {
+
         for (Topic topic1Topic : topics) {
             double similarity = StringSimilarity.similarity(topic1Topic.toString(), topic.toString());
-            if (similarity > SIMILARITY_THRESHOLD) {
+            if (similarity > params.getFilterUSTopicsSimilarityThreshold()) {
                 return false;
             }
         }
         return true;
+    }
+
+    private List<Topic> filterCompositeTopics(List<Topic> topics, OpenIEExtractionParams params) {
+        List<Topic> resultTopics = new ArrayList<>();
+        for (Topic topic : topics) {
+            String topicString = topic.toString();
+            String[] topicTokens = topicString.split(" ");
+            if (topicTokens.length < params.getFilterUSTopicsCompositionsMinLength())
+                resultTopics.add(topic);
+            int topicsAlreadyFound = 0;
+            for (String topicToken : topicTokens) {
+                for (Topic topic1 : topics) {
+                    if (topic1.toString().equals(topicToken))
+                        topicsAlreadyFound++;
+                }
+            }
+            if (topicsAlreadyFound != topicTokens.length)
+                resultTopics.add(topic);
+        }
+        return resultTopics;
     }
 
     private List<Topic> filter_topics(List<Topic> topics) {

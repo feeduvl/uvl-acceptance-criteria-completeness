@@ -11,8 +11,10 @@ import com.google.gson.JsonPrimitive;
 
 import de.uhd.ifi.se.accompleteness.calculation.wordnet.WordnetCompletenessCalculator;
 import de.uhd.ifi.se.accompleteness.extractor.ACExtractor;
+import de.uhd.ifi.se.accompleteness.extractor.ExtractionParams;
 import de.uhd.ifi.se.accompleteness.extractor.USExtractor;
 import de.uhd.ifi.se.accompleteness.extractor.openie.OpenIEACExtractor;
+import de.uhd.ifi.se.accompleteness.extractor.openie.OpenIEExtractionParams;
 import de.uhd.ifi.se.accompleteness.extractor.openie.OpenIEUSExtractor;
 import de.uhd.ifi.se.accompleteness.model.CompletenessCalcResult;
 import de.uhd.ifi.se.accompleteness.model.CompletenessResponse;
@@ -40,19 +42,20 @@ public class RunRest {
      */
     public Object createResponse(Request req, Response res) {
         try {
-            // Start measuring the runtime
-            // long start = System.currentTimeMillis();
 
             // Interpret the payload of the HTTP request as JSON and extract
             // the user stories (called documents) and parameters
             JsonObject jsonRequest = new Gson().fromJson(req.body(), JsonObject.class);
             JsonArray documents = jsonRequest.get("dataset").getAsJsonObject().get("documents").getAsJsonArray();
-            boolean debug = jsonRequest.get("params").getAsJsonObject().get("debug").getAsBoolean();
-            boolean filterUSTopics = jsonRequest.get("params").getAsJsonObject().get("filterUSTopics").getAsBoolean();
+            JsonObject paramsJson = jsonRequest.get("params").getAsJsonObject();
+
+            // Read the params for the user story information extraction
+            ExtractionParams params = new OpenIEExtractionParams();
+            params.setExtractionParamsFromJson(paramsJson);
 
             // Generate acceptance criteria and put them into the form required
             // by the API
-            JsonArray response = addAcceptanceCriteriaToResponse(documents, debug, filterUSTopics);
+            JsonArray response = addAcceptanceCriteriaToResponse(documents, params);
 
             //response.addMetric("count", documents.size());
 
@@ -66,8 +69,8 @@ public class RunRest {
             StringWriter sw = new StringWriter();
             PrintWriter pw = new PrintWriter(sw);
             e.printStackTrace(pw);
-            // String sStackTrace = sw.toString();
-            return "<h1>500 Internal Server Error</h1><code>" + req.body().replaceAll("\\n", "<br>") + "</code>";
+            String sStackTrace = sw.toString();
+            return "<h1>500 Internal Server Error</h1><code>" + sStackTrace.replaceAll("\\n", "<br>") + "</code>";
         }
     }
 
@@ -86,7 +89,7 @@ public class RunRest {
      * @see <a href="https://github.com/feeduvl/uvl-acceptance-criteria/blob/main/swagger.yaml">https://github.com/feeduvl/uvl-acceptance-criteria/blob/main/swagger.yaml</a>
      * for the API documentation
      */
-    public static JsonArray addAcceptanceCriteriaToResponse(JsonArray documents, boolean debug, boolean filterUSTopics) {
+    public static JsonArray addAcceptanceCriteriaToResponse(JsonArray documents, ExtractionParams extrParams) {
         JsonArray responseList = new JsonArray();
         int errors = 0;
         for (JsonElement document : documents) { // for every user story
@@ -100,7 +103,7 @@ public class RunRest {
                 UserStory userStory = new UserStory(userStoryText);
 
                 USExtractor usExtractor = new OpenIEUSExtractor();
-                NLPResultSingle usNlpResult = usExtractor.extract(userStory, debug, filterUSTopics);
+                NLPResultSingle usNlpResult = usExtractor.extract(userStory, extrParams);
                 for (Topic topic: usNlpResult.getTopics()) {
                     response.addUSTopic(topic);
                 }
@@ -110,7 +113,7 @@ public class RunRest {
                 }
 
                 ACExtractor acExtractor = new OpenIEACExtractor();
-                NLPResultSingle acNlpResult = acExtractor.extract(acceptanceText, debug);
+                NLPResultSingle acNlpResult = acExtractor.extract(acceptanceText);
 
                 for (Topic topic: acNlpResult.getTopics()) {
                     response.addACTopic(topic);
@@ -126,10 +129,6 @@ public class RunRest {
                 response.addMetric(metricName, metricValue);
                 responseList.add(response.toJson());
             } catch (Exception e) {
-                // If an exception is thrown (e.g. if the user story could not
-                // be identified), the exception message is added as an error
-                // message to the response, and the next user story can be
-                // processed.
                 JsonObject objectTest = new JsonObject();
                 StringWriter sw = new StringWriter();
                 PrintWriter pw = new PrintWriter(sw);

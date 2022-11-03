@@ -18,6 +18,6 @@ public interface ACExtractor {
      * as the verb or the subject could not be identified by the Stanford
      * CoreNLP tools.
      */
-    public NLPResultSingle extract(String acceptanceCriterion, boolean debug);
+    public NLPResultSingle extract(String acceptanceCriterion);
 
 }

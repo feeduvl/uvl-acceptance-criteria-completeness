@@ -19,7 +19,7 @@ import edu.stanford.nlp.util.CoreMap;
 public class OpenIEACExtractor implements ACExtractor {
 
     @Override
-    public NLPResultSingle extract(String acceptanceCriterion, boolean debug) {
+    public NLPResultSingle extract(String acceptanceCriterion) {
 
         List<Topic> topics = new ArrayList<Topic>();
         List<Relationship> relationships = new ArrayList<>();

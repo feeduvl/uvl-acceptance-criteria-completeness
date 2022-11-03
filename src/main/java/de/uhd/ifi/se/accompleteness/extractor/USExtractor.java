@@ -19,6 +19,6 @@ public interface USExtractor {
      * as the verb or the subject could not be identified by the Stanford
      * CoreNLP tools.
      */
-    public NLPResultSingle extract(UserStory userStory, boolean debug, boolean filterUSTopics);
+    public NLPResultSingle extract(UserStory userStory, ExtractionParams params);
 
 }
