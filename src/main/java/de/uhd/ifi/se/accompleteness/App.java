@@ -28,8 +28,8 @@ public class App {
 
         StatusRest statusRest = new StatusRest();
         RunRest runRest = new RunRest();
-        get("/hitec/completeness/acceptance-criteria/status", statusRest::createResponse);
-        post("/hitec/completeness/acceptance-criteria/run", runRest::createResponse);
+        get("/hitec/classify/concepts/acceptance-criteria-completeness/status", statusRest::createResponse);
+        post("/hitec/classify/concepts/acceptance-criteria-completeness/run", runRest::createResponse);
     }
 
     
