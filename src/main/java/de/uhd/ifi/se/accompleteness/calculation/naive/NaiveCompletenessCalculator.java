@@ -13,7 +13,7 @@ public class NaiveCompletenessCalculator implements CompletenessCalculator {
     @Override
     public CompletenessCalcResult calculate_completeness(NLPResultSingle usResult, NLPResultSingle acResult) {
         Map<String, Double> toReturn = new HashMap<>();
-        Map<Topic, Topic> matchedTopics = new HashMap<>();
+        Map<String, String> matchedTopics = new HashMap<>();
         int topicsFound = 0;
         int topicsAll = 0;
         for (Topic topic: usResult.getTopics()) {
