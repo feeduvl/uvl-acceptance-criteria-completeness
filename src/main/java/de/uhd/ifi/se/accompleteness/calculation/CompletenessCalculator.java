@@ -5,5 +5,5 @@ import de.uhd.ifi.se.accompleteness.model.NLPResultSingle;
 import net.sf.extjwnl.JWNLException;
 
 public interface CompletenessCalculator {
-    public CompletenessCalcResult calculate_completeness(NLPResultSingle usResult, NLPResultSingle acResult) throws JWNLException, CloneNotSupportedException, Exception;
+    public CompletenessCalcResult calculate_completeness(NLPResultSingle usResult, NLPResultSingle acResult, CalculationParams params) throws JWNLException, CloneNotSupportedException, Exception;
 }

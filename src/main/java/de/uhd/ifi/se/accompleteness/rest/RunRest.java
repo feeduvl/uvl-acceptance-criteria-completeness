@@ -9,6 +9,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
+import de.uhd.ifi.se.accompleteness.calculation.CalculationParams;
+import de.uhd.ifi.se.accompleteness.calculation.wordnet.WordnetCalculationParams;
 import de.uhd.ifi.se.accompleteness.calculation.wordnet.WordnetCompletenessCalculator;
 import de.uhd.ifi.se.accompleteness.extractor.ACExtractor;
 import de.uhd.ifi.se.accompleteness.extractor.ExtractionParams;
@@ -50,12 +52,16 @@ public class RunRest {
             JsonObject paramsJson = jsonRequest.get("params").getAsJsonObject();
 
             // Read the params for the user story information extraction
-            ExtractionParams params = new OpenIEExtractionParams();
-            params.setExtractionParamsFromJson(paramsJson);
+            ExtractionParams extractionParams = new OpenIEExtractionParams();
+            extractionParams.setExtractionParamsFromJson(paramsJson);
+
+            // Read the params for the user story information extraction
+            CalculationParams calcParams = new WordnetCalculationParams();
+            calcParams.setCalculationParamsFromJson(paramsJson);
 
             // Generate acceptance criteria and put them into the form required
             // by the API
-            JsonArray response = addAcceptanceCriteriaToResponse(documents, params);
+            JsonArray response = addAcceptanceCriteriaToResponse(documents, extractionParams, calcParams);
 
             //response.addMetric("count", documents.size());
 
@@ -81,7 +87,8 @@ public class RunRest {
      * 
      * @param documents a part of the HTTP request payload containing the user
      * stories
-     * @param debug whether to include debug information in the HTTP response.
+     * @param extrParams params for user story extraction.
+     * @param calcParams params for completeness calculation.
      * @return a object containing acceptance criteria, log
      * messages and metrics in the syntax required by the FeedUVL API.
      * 
@@ -89,7 +96,7 @@ public class RunRest {
      * @see <a href="https://github.com/feeduvl/uvl-acceptance-criteria/blob/main/swagger.yaml">https://github.com/feeduvl/uvl-acceptance-criteria/blob/main/swagger.yaml</a>
      * for the API documentation
      */
-    public static JsonArray addAcceptanceCriteriaToResponse(JsonArray documents, ExtractionParams extrParams) {
+    public static JsonArray addAcceptanceCriteriaToResponse(JsonArray documents, ExtractionParams extrParams, CalculationParams calcParams) {
         JsonArray responseList = new JsonArray();
         int errors = 0;
         for (JsonElement document : documents) { // for every user story
@@ -123,7 +130,7 @@ public class RunRest {
                     response.addACRelationship(relationship);
                 }
 
-                CompletenessCalcResult calcResult = new WordnetCompletenessCalculator().calculate_completeness(usNlpResult, acNlpResult);
+                CompletenessCalcResult calcResult = new WordnetCompletenessCalculator().calculate_completeness(usNlpResult, acNlpResult, calcParams);
                 String metricName = calcResult.getMetrics().entrySet().iterator().next().getKey();
                 double metricValue = calcResult.getMetrics().entrySet().iterator().next().getValue();
                 response.addMetric(metricName, metricValue);

@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import de.uhd.ifi.se.accompleteness.calculation.CalculationParams;
 import de.uhd.ifi.se.accompleteness.calculation.CompletenessCalculator;
 import de.uhd.ifi.se.accompleteness.model.CompletenessCalcResult;
 import de.uhd.ifi.se.accompleteness.model.NLPResultSingle;
@@ -20,12 +21,12 @@ import net.sf.extjwnl.dictionary.Dictionary;
 
 public class WordnetCompletenessCalculator implements CompletenessCalculator {
 
-    int SIMILAR_THRESHHOLD = 5;
-    double WORDNET_ALPHA = .8;
-
     @Override
-    public CompletenessCalcResult calculate_completeness(NLPResultSingle usResult, NLPResultSingle acResult)
+    public CompletenessCalcResult calculate_completeness(NLPResultSingle usResult, NLPResultSingle acResult, CalculationParams params)
             throws JWNLException, CloneNotSupportedException, Exception {
+        WordnetCalculationParams calcParams = (WordnetCalculationParams) params;
+        double WORDNET_ALPHA = calcParams.getWordnetAlpha();
+        int SIMILAR_THRESHHOLD = calcParams.getWordnetDistanceThreshold();
         Dictionary dictionary = Dictionary.getDefaultResourceInstance();
         Map<String, Double> toReturn = new HashMap<>();
         Map<String, String> matchedTopics = new HashMap<>();

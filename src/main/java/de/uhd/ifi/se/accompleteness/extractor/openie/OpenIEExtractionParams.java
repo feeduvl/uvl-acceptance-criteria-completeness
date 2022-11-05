@@ -20,15 +20,15 @@ public class OpenIEExtractionParams implements ExtractionParams {
     @Override
     public void setExtractionParamsFromJson(JsonObject params) {
         this.debug = params.get("debug").getAsBoolean();
-        
+
         this.filterUSTopicsExcludeList = params.get("filterUSTopicsExcludeList").getAsBoolean();
 
         this.filterUSTopicsSimilarity = params.get("filterUSTopicsSimilarity").getAsBoolean();
         this.filterUSTopicsSimilarityThreshold = params.get("filterUSTopicsSimilarityThreshold").getAsDouble();
-        
+
         this.filterUSTopicsCompositions = params.get("filterUSTopicsCompositions").getAsBoolean();
         this.filterUSTopicsCompositionsMinLength = params.get("filterUSTopicsCompositionsMinLength").getAsInt();
-        
+
         this.OpenIEConfidence = params.get("OpenIEConfidence").getAsDouble();
     }
 
