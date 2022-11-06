@@ -100,7 +100,7 @@ public class RunRest {
         JsonArray responseList = new JsonArray();
         int errors = 0;
         for (JsonElement document : documents) { // for every user story
-            int userStoryNumber = document.getAsJsonObject().get("id").getAsInt();
+            int userStoryNumber = document.getAsJsonObject().get("number").getAsInt();
             String inputText = document.getAsJsonObject().get("text").getAsString();
             String userStoryText = extractUserStoryString(inputText);
             String acceptanceText = extractAcceptanceCriteriaString(inputText);
