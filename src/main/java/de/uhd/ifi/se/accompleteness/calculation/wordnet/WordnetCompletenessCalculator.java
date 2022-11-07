@@ -87,8 +87,15 @@ public class WordnetCompletenessCalculator implements CompletenessCalculator {
                 }
             }
         }
-        toReturn.put("completeness", (WORDNET_ALPHA * (double) (wordNetWordsFound) / (double) (wordNetWordsTotal))
-                + (1 - WORDNET_ALPHA) * (double) (nonWordNetWordsFound) / (double) (nonWordNetWordsTotal));
+        double wordnetResultCompleteness = WORDNET_ALPHA * (double) (wordNetWordsFound) / (double) (wordNetWordsTotal);
+        double nonWordnetResultCompleteness = (1 - WORDNET_ALPHA) * (double) (nonWordNetWordsFound) / (double) (nonWordNetWordsTotal);
+        if (Double.isNaN(nonWordnetResultCompleteness)) {
+            nonWordnetResultCompleteness = 0;
+        }
+        if (Double.isNaN(wordnetResultCompleteness)) {
+            wordnetResultCompleteness = 0;
+        }
+        toReturn.put("completeness",  wordnetResultCompleteness + nonWordnetResultCompleteness);
         return new CompletenessCalcResult(toReturn, matchedTopics);
     }
 
