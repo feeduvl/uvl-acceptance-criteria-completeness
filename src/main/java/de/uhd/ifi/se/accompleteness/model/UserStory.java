@@ -1,9 +1,7 @@
 package de.uhd.ifi.se.accompleteness.model;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -48,11 +46,24 @@ public class UserStory {
      */
     boolean wasCutAtListOrNote;
 
-    /**
-     * A map that stores the generated acceptance criteria and associates it to
-     * the respective generator class.
-     */
-    Map<String, List<AcceptanceCriterion>> acceptanceCriteria;
+    String id;
+    String acceptanceCriteria;
+
+    public String getAcceptanceCriteria() {
+        return acceptanceCriteria;
+    }
+
+    public void setAcceptanceCriteria(String acceptanceCriteria) {
+        this.acceptanceCriteria = acceptanceCriteria;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 
     /**
      * The constructor for a user story, which always initializes the
@@ -62,13 +73,13 @@ public class UserStory {
      * @throws NoUserStoryException if the string does not contain a valid user
      *                              story according to the user story syntax.
      */
-    public UserStory(String userStoryString) throws NoUserStoryException {
+    public UserStory(String userStoryString, String id, String acceptanceCriteria) throws NoUserStoryException {
         wasCutAtListOrNote = false;
-        acceptanceCriteria = new HashMap<String, List<AcceptanceCriterion>>();
-
+        this.acceptanceCriteria = acceptanceCriteria;
         // also replaces three or more dots by the character “…” so that
         // multiple dots are not interpreted as a sentence ending.
         identifyParts(userStoryString.replaceAll("\\.{3,}", "…"));
+        this.id = id;
     };
 
     /**

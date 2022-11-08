@@ -2,12 +2,13 @@ package de.uhd.ifi.se.accompleteness.rest;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 
 import de.uhd.ifi.se.accompleteness.calculation.CalculationParams;
 import de.uhd.ifi.se.accompleteness.calculation.wordnet.WordnetCalculationParams;
@@ -19,10 +20,7 @@ import de.uhd.ifi.se.accompleteness.extractor.openie.OpenIEACExtractor;
 import de.uhd.ifi.se.accompleteness.extractor.openie.OpenIEExtractionParams;
 import de.uhd.ifi.se.accompleteness.extractor.openie.OpenIEUSExtractor;
 import de.uhd.ifi.se.accompleteness.model.CompletenessCalcResult;
-import de.uhd.ifi.se.accompleteness.model.CompletenessResponse;
 import de.uhd.ifi.se.accompleteness.model.NLPResultSingle;
-import de.uhd.ifi.se.accompleteness.model.Relationship;
-import de.uhd.ifi.se.accompleteness.model.Topic;
 import de.uhd.ifi.se.accompleteness.model.UserStory;
 import de.uhd.ifi.se.accompleteness.model.UvlResponse;
 import spark.Request;
@@ -61,7 +59,7 @@ public class RunRest {
 
             // Generate acceptance criteria and put them into the form required
             // by the API
-            JsonArray response = addAcceptanceCriteriaToResponse(documents, extractionParams, calcParams);
+            JsonObject response = addAcceptanceCriteriaToResponse(documents, extractionParams, calcParams);
 
             //response.addMetric("count", documents.size());
 
@@ -96,61 +94,34 @@ public class RunRest {
      * @see <a href="https://github.com/feeduvl/uvl-acceptance-criteria/blob/main/swagger.yaml">https://github.com/feeduvl/uvl-acceptance-criteria/blob/main/swagger.yaml</a>
      * for the API documentation
      */
-    public static JsonArray addAcceptanceCriteriaToResponse(JsonArray documents, ExtractionParams extrParams, CalculationParams calcParams) {
-        JsonArray responseList = new JsonArray();
-        int errors = 0;
+    public static JsonObject addAcceptanceCriteriaToResponse(JsonArray documents, ExtractionParams extrParams, CalculationParams calcParams) {
+        List<CompletenessCalcResult> results = new ArrayList<>();
+        ACExtractor acExtractor = new OpenIEACExtractor();
+        USExtractor usExtractor = new OpenIEUSExtractor();
+        
         for (JsonElement document : documents) { // for every user story
-            int userStoryNumber = document.getAsJsonObject().get("number").getAsInt();
             String inputText = document.getAsJsonObject().get("text").getAsString();
+            String userStoryId = document.getAsJsonObject().get("id").getAsString();
             String userStoryText = extractUserStoryString(inputText);
             String acceptanceText = extractAcceptanceCriteriaString(inputText);
-            CompletenessResponse response = new CompletenessResponse(userStoryNumber);
             try {
                 // Extract the user story from the string
-                UserStory userStory = new UserStory(userStoryText);
+                UserStory userStory = new UserStory(userStoryText, userStoryId, acceptanceText);
 
-                USExtractor usExtractor = new OpenIEUSExtractor();
                 NLPResultSingle usNlpResult = usExtractor.extract(userStory, extrParams);
-                for (Topic topic: usNlpResult.getTopics()) {
-                    response.addUSTopic(topic);
-                }
 
-                for (Relationship relationship : usNlpResult.getRelationships()) {
-                    response.addUSRelationship(relationship);
-                }
-
-                ACExtractor acExtractor = new OpenIEACExtractor();
                 NLPResultSingle acNlpResult = acExtractor.extract(acceptanceText);
 
-                for (Topic topic: acNlpResult.getTopics()) {
-                    response.addACTopic(topic);
-                }
-
-                for (Relationship relationship : acNlpResult.getRelationships()) {
-                    response.addACRelationship(relationship);
-                }
-
-                CompletenessCalcResult calcResult = new WordnetCompletenessCalculator().calculate_completeness(usNlpResult, acNlpResult, calcParams);
-                String metricName = calcResult.getMetrics().entrySet().iterator().next().getKey();
-                double metricValue = calcResult.getMetrics().entrySet().iterator().next().getValue();
-                response.addMetric(metricName, metricValue);
-                responseList.add(response.toJson());
+                CompletenessCalcResult calcResult = new WordnetCompletenessCalculator().calculate_completeness(usNlpResult, acNlpResult, calcParams, userStory);
+                results.add(calcResult);
             } catch (Exception e) {
-                JsonObject objectTest = new JsonObject();
                 StringWriter sw = new StringWriter();
                 PrintWriter pw = new PrintWriter(sw);
                 e.printStackTrace(pw);
-                objectTest.add(e.getMessage(), new JsonPrimitive(sw.toString()));
-                responseList.add(objectTest);
-                //response.addAcceptanceCriterion(new AcceptanceCriterion(e.getMessage(), AcceptanceCriterionType.ERROR), userStoryNumber);
             }
         }
 
-        // Add the log message counts to the response
-        JsonObject objectTest = new JsonObject();
-        objectTest.add("errorCount", new JsonPrimitive(errors));
-        responseList.add(objectTest);
-        return responseList;
+        return UvlResponse.getJsonFromResults(results);
     }
 
     private static String extractUserStoryString (String inputString) {

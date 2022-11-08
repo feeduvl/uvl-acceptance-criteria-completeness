@@ -25,6 +25,14 @@ public class OpenIEUSExtractor implements USExtractor {
 
     private static final List<String> exclude_tokens = Arrays.asList("I");
 
+    StanfordCoreNLP pipeline;
+
+    public OpenIEUSExtractor() {
+        Properties props = new Properties();
+        props.setProperty("annotators", "tokenize,ssplit,pos,lemma,depparse,natlog,openie");
+        pipeline = new StanfordCoreNLP(props);
+    }
+
     /**
      * {@inheritDoc}
      * 
@@ -42,9 +50,6 @@ public class OpenIEUSExtractor implements USExtractor {
 
         // Set up the NLP pipeline and annotate the preprocessed user story
         // string
-        Properties props = new Properties();
-        props.setProperty("annotators", "tokenize,ssplit,pos,lemma,depparse,natlog,openie");
-        StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
         Annotation document = new Annotation(userStoryString);
         pipeline.annotate(document);
 
