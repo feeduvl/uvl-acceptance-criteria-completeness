@@ -24,7 +24,7 @@ public class UvlResponse {
         for (CompletenessCalcResult calcResult : results) {
             JsonObject singleObject = new JsonObject();
             singleObject.addProperty("id", calcResult.getUserStory().getId());
-            singleObject.addProperty("user_story_text", calcResult.getUserStory().toString());
+            singleObject.addProperty("user_story_text", calcResult.getUserStory().getUserStoryString());
             singleObject.addProperty("user_story_goal", calcResult.getUserStory().getGoal());
             singleObject.addProperty("acceptance_criteria_text", calcResult.getUserStory().getAcceptanceCriteria());
 
