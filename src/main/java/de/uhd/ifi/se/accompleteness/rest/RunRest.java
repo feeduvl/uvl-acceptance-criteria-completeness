@@ -136,6 +136,12 @@ public class RunRest {
         inputString = inputString.replace("\n", "");
         int start = inputString.indexOf("+++");
         int end = inputString.indexOf("+++", start + 1);
+        if (end == -1) {
+            end = start;
+            int startUS = inputString.indexOf("###");
+            int endUS = inputString.indexOf("###", startUS + 1);
+            start = endUS + 3;
+        }
         return inputString.substring(start + 3, end);
     }
 }
