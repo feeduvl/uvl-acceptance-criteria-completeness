@@ -84,12 +84,18 @@ public class WordnetCompletenessCalculator implements CompletenessCalculator {
                         && relationships.getShallowest().getDepth() < SIMILAR_THRESHHOLD) {
                     wordNetWordsFound++;
                     matchedTopics.put(usSynset.getKey(), acSynset.getKey());
-                    continue;
+                    break;
                 }
             }
         }
         double wordnetResultCompleteness = WORDNET_ALPHA * ((double) (wordNetWordsFound) / (double) (wordNetWordsTotal));
         double nonWordnetResultCompleteness = (1 - WORDNET_ALPHA) * ((double) (nonWordNetWordsFound) / (double) (nonWordNetWordsTotal));
+        System.out.println("wordNetWordsFound" + wordNetWordsFound);
+        System.out.println("wordNetWordsTotal" + wordNetWordsTotal);
+        System.out.println("nonWordNetWordsFound" + nonWordNetWordsFound);
+        System.out.println("nonWordNetWordsTotal" + nonWordNetWordsTotal);
+        System.out.println("wordnetResultCompleteness" + wordnetResultCompleteness);
+        System.out.println("nonWordnetResultCompleteness" + nonWordnetResultCompleteness);
         if (Double.isNaN(nonWordnetResultCompleteness)) {
             nonWordnetResultCompleteness = 0;
         }
