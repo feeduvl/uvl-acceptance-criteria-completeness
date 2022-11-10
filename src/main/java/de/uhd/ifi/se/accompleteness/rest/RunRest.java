@@ -74,6 +74,7 @@ public class RunRest {
             PrintWriter pw = new PrintWriter(sw);
             e.printStackTrace(pw);
             String sStackTrace = sw.toString();
+            System.out.println(sStackTrace);
             return "<h1>500 Internal Server Error</h1><code>" + sStackTrace.replaceAll("\\n", "<br>") + "</code>";
         }
     }
@@ -98,7 +99,7 @@ public class RunRest {
         List<CompletenessCalcResult> results = new ArrayList<>();
         ACExtractor acExtractor = new OpenIEACExtractor();
         USExtractor usExtractor = new OpenIEUSExtractor();
-        
+
         for (JsonElement document : documents) { // for every user story
             String inputText = document.getAsJsonObject().get("text").getAsString();
             String userStoryId = document.getAsJsonObject().get("id").getAsString();
