@@ -96,8 +96,11 @@ public class UserStory {
         if (indexAsA == -1) {
             // if a user story does not contain a role specified using the
             // syntax “As a(n) [role]”
-            throw new NoUserStoryException(
-                    "A role could not be found. Please make sure the role of the user story is declared using the syntax \"As a(n) [role]\".");
+            indexAsA = userStoryString.toUpperCase().indexOf("AS THE");
+            if (indexAsA == -1) {
+                throw new NoUserStoryException(
+                        "A role could not be found. Please make sure the role of the user story is declared using the syntax \"As a(n) [role]\".");
+            }
         }
 
         // cut the user story string to start at the beginning of the role part

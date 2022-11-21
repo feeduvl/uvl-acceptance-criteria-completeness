@@ -119,6 +119,9 @@ public class RunRest {
                 StringWriter sw = new StringWriter();
                 PrintWriter pw = new PrintWriter(sw);
                 e.printStackTrace(pw);
+                System.out.println(userStoryId);
+                String sStackTrace = sw.toString();
+                System.out.println(sStackTrace);
             }
         }
 
