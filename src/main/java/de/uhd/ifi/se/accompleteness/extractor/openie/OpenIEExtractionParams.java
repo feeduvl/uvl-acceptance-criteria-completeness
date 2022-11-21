@@ -15,8 +15,6 @@ public class OpenIEExtractionParams implements ExtractionParams {
     private boolean filterUSTopicsCompositions;
     private int filterUSTopicsCompositionsMinLength;
 
-    private double OpenIEConfidence;
-
     @Override
     public void setExtractionParamsFromJson(JsonObject params) {
         this.debug = params.get("debug").getAsBoolean();
@@ -28,8 +26,6 @@ public class OpenIEExtractionParams implements ExtractionParams {
 
         this.filterUSTopicsCompositions = params.get("filterUSTopicsCompositions").getAsBoolean();
         this.filterUSTopicsCompositionsMinLength = params.get("filterUSTopicsCompositionsMinLength").getAsInt();
-
-        this.OpenIEConfidence = params.get("OpenIEConfidence").getAsDouble();
     }
 
     public boolean isDebug() {
@@ -54,10 +50,6 @@ public class OpenIEExtractionParams implements ExtractionParams {
 
     public int getFilterUSTopicsCompositionsMinLength() {
         return filterUSTopicsCompositionsMinLength;
-    }
-
-    public double getOpenIEConfidence() {
-        return OpenIEConfidence;
     }
 
 }

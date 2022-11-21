@@ -58,7 +58,8 @@ public class OpenIEUSExtractor implements USExtractor {
             Collection<RelationTriple> triples = sentence.get(NaturalLogicAnnotations.RelationTriplesAnnotation.class);
             // Print the triples
             for (RelationTriple triple : triples) {
-                if (triple.confidence > paramsOpenIE.getOpenIEConfidence()) {
+                System.out.println(triple.confidence);
+                if (triple.confidence > 0.5) { // confidence will always be 1.0
                     Topic subjectTopic = new Topic(triple.subjectLemmaGloss(), triple.subject.get(0).tag());
                     Topic objectTopic = new Topic(triple.objectLemmaGloss(), triple.object.get(0).tag());
                     Relationship relationship = new Relationship(subjectTopic, objectTopic,
