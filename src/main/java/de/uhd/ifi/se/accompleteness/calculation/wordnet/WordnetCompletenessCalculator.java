@@ -24,7 +24,6 @@ public class WordnetCompletenessCalculator implements CompletenessCalculator {
     public CompletenessCalcResult calculate_completeness(NLPResultSingle usResult, NLPResultSingle acResult, CalculationParams params, UserStory userStory)
             throws JWNLException, CloneNotSupportedException, Exception {
         WordnetCalculationParams calcParams = (WordnetCalculationParams) params;
-        double WORDNET_ALPHA = calcParams.getWordnetAlpha();
         int SIMILAR_THRESHHOLD = calcParams.getWordnetDistanceThreshold();
         Dictionary dictionary = Dictionary.getDefaultResourceInstance();
         Map<String, Double> toReturn = new HashMap<>();
@@ -64,47 +63,38 @@ public class WordnetCompletenessCalculator implements CompletenessCalculator {
                 acWordsNonWordnet.put(topic, singleWord);
             }
         }
-        int nonWordNetWordsTotal = usWordsNonWordnet.size();
-        int nonWordNetWordsFound = 0;
+        int wordsTotal = usWordsNonWordnet.size();
+        int wordsFound = 0;
         for (var usWordString : usWordsNonWordnet.entrySet()) {
             for (var acWordString : acWordsNonWordnet.entrySet()) {
                 if (usWordString.equals(acWordString)) {
-                    nonWordNetWordsFound++;
+                    wordsFound++;
                     matchedTopics.put(usWordString.getKey(), acWordString.getKey());
                 }
             }
         }
-        int wordNetWordsTotal = usWordsWordnet.size();
-        int wordNetWordsFound = 0;
+        wordsTotal += usWordsWordnet.size();
         for (var usSynset : usWordsWordnet.entrySet()) {
             for (var acSynset : acWordsWordnet.entrySet()) {
                 RelationshipList relationships = RelationshipFinder.findRelationships(
                         usSynset.getValue(), acSynset.getValue(), PointerType.HYPERNYM);
                 if (relationships.size() > 0
                         && relationships.getShallowest().getDepth() < SIMILAR_THRESHHOLD) {
-                    wordNetWordsFound++;
+                            wordsFound++;
                     matchedTopics.put(usSynset.getKey(), acSynset.getKey());
                     break;
                 }
             }
         }
-        double wordnetResultCompleteness = WORDNET_ALPHA * ((double) (wordNetWordsFound) / (double) (wordNetWordsTotal));
-        double nonWordnetResultCompleteness = (1 - WORDNET_ALPHA) * ((double) (nonWordNetWordsFound) / (double) (nonWordNetWordsTotal));
-        System.out.println("wordNetWordsFound" + wordNetWordsFound);
-        System.out.println("wordNetWordsTotal" + wordNetWordsTotal);
-        System.out.println("nonWordNetWordsFound" + nonWordNetWordsFound);
-        System.out.println("nonWordNetWordsTotal" + nonWordNetWordsTotal);
-        System.out.println("wordnetResultCompleteness" + wordnetResultCompleteness);
-        System.out.println("nonWordnetResultCompleteness" + nonWordnetResultCompleteness);
-        if (Double.isNaN(nonWordnetResultCompleteness)) {
-            nonWordnetResultCompleteness = 0;
+        double resultCompleteness = ((double) (wordsFound) / (double) (wordsTotal));
+        System.out.println("wordsFound" + wordsFound);
+        System.out.println("wordsTotal" + wordsTotal);
+        System.out.println("resultCompleteness" + resultCompleteness);
+        if (Double.isNaN(resultCompleteness)) {
+            resultCompleteness = 0;
         }
-        if (Double.isNaN(wordnetResultCompleteness)) {
-            wordnetResultCompleteness = 0;
-        }
-        double completeness = wordnetResultCompleteness + nonWordnetResultCompleteness;
-        toReturn.put("completeness",  completeness);
-        return new CompletenessCalcResult(completeness, usResult.getTopics(), acResult.getTopics(), matchedTopics, userStory);
+        toReturn.put("completeness",  resultCompleteness);
+        return new CompletenessCalcResult(resultCompleteness, usResult.getTopics(), acResult.getTopics(), matchedTopics, userStory);
     }
 
 }
