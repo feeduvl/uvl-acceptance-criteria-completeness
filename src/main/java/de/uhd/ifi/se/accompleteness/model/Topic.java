@@ -9,15 +9,19 @@ import net.sf.extjwnl.data.POS;
 public class Topic  {
     String topic;
     String tag;
+    int startPosition;
+    int endPosition;
 
     public Topic(String topic) {
         this.topic = topic;
         this.tag = "";
     }
 
-    public Topic(String topic, String tag) {
+    public Topic(String topic, String tag, int startPosition, int endPosition) {
         this.topic = topic;
         this.tag = tag;
+        this.startPosition = startPosition;
+        this.endPosition = endPosition;
     }
 
     public POS getPOSTag() throws Exception {
@@ -29,6 +33,14 @@ public class Topic  {
         }
         
         return null;
+    }
+
+    public int getStartPosition() {
+        return startPosition;
+    }
+
+    public int getEndPosition() {
+        return endPosition;
     }
 
     @Override

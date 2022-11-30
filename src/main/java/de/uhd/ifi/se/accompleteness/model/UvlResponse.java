@@ -28,9 +28,16 @@ public class UvlResponse {
             singleObject.addProperty("user_story_goal", calcResult.getUserStory().getGoal());
             singleObject.addProperty("acceptance_criteria_text", calcResult.getUserStory().getAcceptanceCriteria());
 
-            JsonObject matchedTopics = new JsonObject();
+            JsonArray matchedTopics = new JsonArray();
             for (var entry : calcResult.getMatchedTopics().entrySet()) {
-                matchedTopics.addProperty(entry.getKey().toString(), entry.getValue().toString());
+                JsonObject mapping = new JsonObject();
+                mapping.addProperty("usTopic", entry.getKey().toString());
+                mapping.addProperty("acTopic", entry.getValue().toString());
+                mapping.addProperty("usTopicStart", entry.getKey().getStartPosition());
+                mapping.addProperty("usTopicEnd", entry.getKey().getEndPosition());
+                mapping.addProperty("acTopicStart", entry.getValue().getStartPosition());
+                mapping.addProperty("acTopicEnd", entry.getValue().getEndPosition());
+                matchedTopics.add(mapping);
             }
             singleObject.add("mapping", matchedTopics);
             singleObject.addProperty("completeness", calcResult.getCompleteness());

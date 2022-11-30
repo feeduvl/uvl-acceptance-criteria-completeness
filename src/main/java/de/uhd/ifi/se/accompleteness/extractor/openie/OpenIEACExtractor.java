@@ -28,9 +28,7 @@ public class OpenIEACExtractor implements ACExtractor {
         // string
         Properties props = new Properties();
         props.setProperty("annotators", "tokenize,ssplit,pos,lemma,depparse,natlog,openie");
-        // props.setProperty("ssplit.isOneSentence", "true");
-        // props.setProperty("regexner.mapping",
-        // "src/main/java/de/uhd/ifi/se/acgen/generator/gherkin/regexner/ui-mapping.txt");
+        
         StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
         Annotation document = new Annotation(acceptanceCriterion);
         pipeline.annotate(document);
@@ -39,8 +37,8 @@ public class OpenIEACExtractor implements ACExtractor {
             Collection<RelationTriple> triples = sentence.get(NaturalLogicAnnotations.RelationTriplesAnnotation.class);
             // Print the triples
             for (RelationTriple triple : triples) {
-                Topic subjectTopic = new Topic(triple.subjectLemmaGloss(), triple.subject.get(0).tag());
-                Topic objectTopic = new Topic(triple.objectLemmaGloss(), triple.object.get(0).tag());
+                Topic subjectTopic = new Topic(triple.subjectLemmaGloss(), triple.subject.get(0).tag(), triple.subject.get(0).beginPosition(), triple.subject.get(0).endPosition());
+                Topic objectTopic = new Topic(triple.objectLemmaGloss(), triple.object.get(0).tag(), triple.object.get(0).beginPosition(), triple.object.get(0).endPosition());
                 Relationship relationship = new Relationship(subjectTopic, objectTopic,
                         triple.relationLemmaGloss());
                 if (!(topics.contains(subjectTopic))) {

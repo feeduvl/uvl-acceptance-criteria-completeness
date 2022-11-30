@@ -11,8 +11,6 @@ import static spark.Spark.*;
  * 
  * @see RunRest
  * @see StatusRest
- * @see <a href="https://github.com/feeduvl/uvl-acceptance-criteria/blob/main/swagger.yaml">https://github.com/feeduvl/uvl-acceptance-criteria/blob/main/swagger.yaml</a>
- * for the API documentation
  */
 public class App {
 
@@ -35,7 +33,7 @@ public class App {
     
     /** 
      * The main method of the {@link App} which starts a server listening to
-     * port 9696.
+     * port 9640.
      * 
      * @param args The command line arguments passed to the application
      */

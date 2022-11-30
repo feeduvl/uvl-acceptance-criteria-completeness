@@ -29,6 +29,8 @@ public class UserStory {
      */
     String goal;
 
+    int goalStartPosition;
+
     /**
      * The reason of the user story in the syntax “so that [reason]”.
      */
@@ -127,6 +129,8 @@ public class UserStory {
             throw new NoUserStoryException(
                     "A goal could not be found. Please make sure the goal of the user story is declared after the role using the syntax \"I want [goal]\".");
         }
+
+        this.goalStartPosition = indexIWant;
 
         // some sanitizing happens here, i.e., remove asterisks (usually used
         // for formatting) and replace multiple whitespace characters by a
@@ -289,6 +293,10 @@ public class UserStory {
      */
     public String getGoal() {
         return goal;
+    }
+
+    public int getGoalStartPosition() {
+        return goalStartPosition;
     }
 
     /**
