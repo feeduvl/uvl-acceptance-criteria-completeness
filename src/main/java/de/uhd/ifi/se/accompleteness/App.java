@@ -22,7 +22,6 @@ public class App {
      */
     public App(int port) {
         port(port);
-        staticFiles.externalLocation("/uvl-acceptance-criteria/target/site/apidocs");
 
         StatusRest statusRest = new StatusRest();
         RunRest runRest = new RunRest();
