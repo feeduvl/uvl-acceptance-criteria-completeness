@@ -54,10 +54,10 @@ public class OpenIEUSExtractor implements USExtractor {
                 if (triple.confidence > 0.5) { // confidence will always be 1.0
                     Topic subjectTopic = new Topic(triple.subjectLemmaGloss(), triple.subject.get(0).tag(),
                             userStory.getGoalStartPosition() + triple.subject.get(0).beginPosition(),
-                            userStory.getGoalStartPosition() + triple.subject.get(0).endPosition());
+                            userStory.getGoalStartPosition() + triple.subject.get(triple.subject.size() - 1).endPosition());
                     Topic objectTopic = new Topic(triple.objectLemmaGloss(), triple.object.get(0).tag(),
                             userStory.getGoalStartPosition() + triple.object.get(0).beginPosition(),
-                            userStory.getGoalStartPosition() + triple.object.get(0).endPosition());
+                            userStory.getGoalStartPosition() + triple.object.get(triple.object.size() - 1).endPosition());
                     Relationship relationship = new Relationship(subjectTopic, objectTopic,
                             triple.relationLemmaGloss());
                     if (!(topics.contains(subjectTopic))) {

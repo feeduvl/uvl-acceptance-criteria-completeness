@@ -3,6 +3,10 @@ package de.uhd.ifi.se.accompleteness.model;
 import java.util.List;
 import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Arrays;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -16,6 +20,8 @@ import com.google.gson.JsonObject;
  *      for the API documentation
  */
 public class UvlResponse {
+
+    private static final Logger LOG = LoggerFactory.getLogger(UvlResponse.class);
 
     public static JsonObject getJsonFromResults(List<CompletenessCalcResult> results) {
         JsonObject mainObject = new JsonObject();
@@ -33,13 +39,33 @@ public class UvlResponse {
             String[] tokensInUserStory = calcResult.getUserStory().getUserStoryString().split(" ");
             JsonArray matchedTopics = new JsonArray();
             int pos = 0;
-            for (String tokenString : tokensInUserStory) {
-                matchedTopics.add(getMapping(tokenString, pos, calcResult.getMatchedTopics().entrySet(),
-                        calcResult.getUsTopics()));
-                pos += tokenString.length() + 1;
+            for (int i = 0; i < tokensInUserStory.length; i++) {
+                UvlResponse.MappingReturnObject mapReturn = getMapping(tokensInUserStory[i], pos,
+                        calcResult.getMatchedTopics().entrySet(),
+                        calcResult.getUsTopics(),
+                        Arrays.asList(Arrays.copyOfRange(tokensInUserStory, i + 1, tokensInUserStory.length)));
+                matchedTopics.add(mapReturn.getMapping());
+                pos += tokensInUserStory[i].length() + 1;
+                pos += mapReturn.getNextTopicIncluded();
+                i += mapReturn.getNextWordsCount();
+            }
+
+            String[] tokensInAcceptanceCriteria = calcResult.getUserStory().getAcceptanceCriteria().split(" ");
+            JsonArray matchedACTopics = new JsonArray();
+            pos = 0;
+            for (int i = 0; i < tokensInAcceptanceCriteria.length; i++) {
+                UvlResponse.MappingReturnObject mapReturn = getMappingAC(tokensInAcceptanceCriteria[i], pos,
+                        calcResult.getMatchedTopics().entrySet(),
+                        calcResult.getAcTopics(), Arrays.asList(Arrays.copyOfRange(tokensInAcceptanceCriteria, i + 1,
+                                tokensInAcceptanceCriteria.length)));
+                matchedACTopics.add(mapReturn.getMapping());
+                pos += tokensInAcceptanceCriteria[i].length() + 1;
+                pos += mapReturn.getNextTopicIncluded();
+                i += mapReturn.getNextWordsCount();
             }
 
             singleObject.add("mapping", matchedTopics);
+            singleObject.add("acMapping", matchedACTopics);
             singleObject.addProperty("completeness", calcResult.getCompleteness());
 
             JsonArray usTopics = new JsonArray();
@@ -70,28 +96,114 @@ public class UvlResponse {
         return mainObject;
     }
 
-    private static JsonObject getMapping(String tokenString, int pos, Set<Entry<Topic, Topic>> matchedTopics,
-            List<Topic> userStoryTopics) {
+    private static class MappingReturnObject {
+        private JsonObject mapping;
+
+        public JsonObject getMapping() {
+            return mapping;
+        }
+
+        public void setMapping(JsonObject mapping) {
+            this.mapping = mapping;
+        }
+
+        public int getNextTopicIncluded() {
+            return nextWordsNum;
+        }
+
+        public void setNextTopicIncluded(int nextWordsNum) {
+            this.nextWordsNum = nextWordsNum;
+        }
+
+        private int nextWordsNum;
+        private int nextWordsCount;
+
+        public int getNextWordsCount() {
+            return nextWordsCount;
+        }
+
+        public void setNextWordsCount(int nextWordsCount) {
+            this.nextWordsCount = nextWordsCount;
+        }
+
+        public MappingReturnObject(JsonObject mapping, int nextWordsNum, int nextWordsCount) {
+            this.mapping = mapping;
+            this.nextWordsNum = nextWordsNum;
+            this.nextWordsCount = nextWordsCount;
+        }
+    }
+
+    private static MappingReturnObject getMapping(String tokenString, int pos, Set<Entry<Topic, Topic>> matchedTopics,
+            List<Topic> userStoryTopics, List<String> nextTokenStrings) {
         JsonObject mapping = new JsonObject();
         mapping.addProperty("text", tokenString);
         for (var entry : matchedTopics) {
             if (entry.getKey().getStartPosition() == pos) {
+                int wordsLengthSum = tokenString.length();
+                int numAdditionalWords = 0;
+                while (wordsLengthSum < (entry.getKey().getEndPosition() - entry.getKey().getStartPosition())) {
+                    String oldText = mapping.get("text").getAsString();
+                    mapping.remove("text");
+                    String newWord = nextTokenStrings.get(numAdditionalWords);
+                    mapping.addProperty("text", oldText + " " + newWord);
+                    numAdditionalWords++;
+                    wordsLengthSum += newWord.length() + 1;
+                }
+
                 mapping.addProperty("annotation", "complete");
-                mapping.addProperty("mapping", entry.getKey().toString());
+                mapping.addProperty("mapping", entry.getValue().toString());
+                mapping.addProperty("token", entry.getKey().toString());
                 mapping.addProperty("usTopicStart", entry.getKey().getStartPosition());
                 mapping.addProperty("usTopicEnd", entry.getKey().getEndPosition());
                 mapping.addProperty("acTopicStart", entry.getValue().getStartPosition());
                 mapping.addProperty("acTopicEnd", entry.getValue().getEndPosition());
-                return mapping;
+                return new UvlResponse.MappingReturnObject(mapping, wordsLengthSum, numAdditionalWords);
             }
         }
         for (var topic : userStoryTopics) {
             if (topic.getStartPosition() == pos) {
                 mapping.addProperty("annotation", "non-complete");
-                return mapping;
+                return new MappingReturnObject(mapping, 0, 0);
             }
         }
         mapping.addProperty("annotation", "no-concept");
-        return mapping;
+        return new MappingReturnObject(mapping, 0, 0);
+    }
+
+    private static MappingReturnObject getMappingAC(String tokenString, int pos, Set<Entry<Topic, Topic>> matchedTopics,
+            List<Topic> acTopics, List<String> nextTokenStrings) {
+        JsonObject mapping = new JsonObject();
+        mapping.addProperty("text", tokenString);
+        for (var entry : matchedTopics) {
+            if (entry.getValue().getStartPosition() == pos) {
+                int wordsLengthSum = tokenString.length();
+                int numAdditionalWords = 0;
+                while (wordsLengthSum < (entry.getKey().getEndPosition() - entry.getKey().getStartPosition())) {
+                    String oldText = mapping.get("text").getAsString();
+                    mapping.remove("text");
+                    String newWord = nextTokenStrings.get(numAdditionalWords);
+                    mapping.addProperty("text", oldText + " " + newWord);
+                    numAdditionalWords++;
+                    wordsLengthSum += newWord.length() + 1;
+                }
+
+                mapping.addProperty("annotation", "complete");
+                mapping.addProperty("mapping", entry.getKey().toString());
+                mapping.addProperty("token", entry.getValue().toString());
+                mapping.addProperty("usTopicStart", entry.getKey().getStartPosition());
+                mapping.addProperty("usTopicEnd", entry.getKey().getEndPosition());
+                mapping.addProperty("acTopicStart", entry.getValue().getStartPosition());
+                mapping.addProperty("acTopicEnd", entry.getValue().getEndPosition());
+                return new UvlResponse.MappingReturnObject(mapping, wordsLengthSum, numAdditionalWords);
+            }
+        }
+        for (var topic : acTopics) {
+            if (topic.getStartPosition() == pos) {
+                mapping.addProperty("annotation", "non-complete");
+                return new MappingReturnObject(mapping, 0, 0);
+            }
+        }
+        mapping.addProperty("annotation", "no-concept");
+        return new MappingReturnObject(mapping, 0, 0);
     }
 }
