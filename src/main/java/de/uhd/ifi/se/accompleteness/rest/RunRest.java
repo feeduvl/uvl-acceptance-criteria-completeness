@@ -23,7 +23,7 @@ import de.uhd.ifi.se.accompleteness.extractor.openie.OpenIEACExtractor;
 import de.uhd.ifi.se.accompleteness.extractor.openie.OpenIEExtractionParams;
 import de.uhd.ifi.se.accompleteness.extractor.openie.OpenIEUSExtractor;
 import de.uhd.ifi.se.accompleteness.model.CompletenessCalcResult;
-import de.uhd.ifi.se.accompleteness.model.NLPResultSingle;
+import de.uhd.ifi.se.accompleteness.model.ExtractionResult;
 import de.uhd.ifi.se.accompleteness.model.UserStory;
 import de.uhd.ifi.se.accompleteness.model.UvlResponse;
 import spark.Request;
@@ -115,10 +115,10 @@ public class RunRest {
             UserStory userStory = new UserStory(userStoryText, userStoryId, acceptanceText);
 
             // Do User Story extraction
-            NLPResultSingle usNlpResult = usExtractor.extract(userStory, extrParams);
+            ExtractionResult usNlpResult = usExtractor.extract(userStory, extrParams);
 
             // Do Acceptance Criteria extraction
-            NLPResultSingle acNlpResult = acExtractor.extract(acceptanceText);
+            ExtractionResult acNlpResult = acExtractor.extract(acceptanceText);
 
             // Calculate completeness, generate mappings
             CompletenessCalcResult calcResult = new WordnetCompletenessCalculator()

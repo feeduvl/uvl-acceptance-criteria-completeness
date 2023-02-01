@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Properties;
 
 import de.uhd.ifi.se.accompleteness.extractor.ACExtractor;
-import de.uhd.ifi.se.accompleteness.model.NLPResultSingle;
+import de.uhd.ifi.se.accompleteness.model.ExtractionResult;
 import de.uhd.ifi.se.accompleteness.model.Relationship;
 import de.uhd.ifi.se.accompleteness.model.Topic;
 import edu.stanford.nlp.ie.util.RelationTriple;
@@ -19,7 +19,7 @@ import edu.stanford.nlp.util.CoreMap;
 public class OpenIEACExtractor implements ACExtractor {
 
     @Override
-    public NLPResultSingle extract(String acceptanceCriterion) {
+    public ExtractionResult extract(String acceptanceCriterion) {
 
         List<Topic> topics = new ArrayList<Topic>();
         List<Relationship> relationships = new ArrayList<>();
@@ -53,7 +53,7 @@ public class OpenIEACExtractor implements ACExtractor {
             }
         }
 
-        return new NLPResultSingle(relationships, topics);
+        return new ExtractionResult(relationships, topics);
     }
 
 }

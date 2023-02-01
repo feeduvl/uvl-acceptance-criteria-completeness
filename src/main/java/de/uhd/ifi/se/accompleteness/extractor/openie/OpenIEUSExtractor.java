@@ -17,7 +17,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
 
-import de.uhd.ifi.se.accompleteness.model.NLPResultSingle;
+import de.uhd.ifi.se.accompleteness.model.ExtractionResult;
 import de.uhd.ifi.se.accompleteness.model.Relationship;
 import de.uhd.ifi.se.accompleteness.model.Topic;
 
@@ -33,7 +33,7 @@ public class OpenIEUSExtractor implements USExtractor {
         pipeline = new StanfordCoreNLP(props);
     }
 
-    public NLPResultSingle extract(UserStory userStory, ExtractionParams params) {
+    public ExtractionResult extract(UserStory userStory, ExtractionParams params) {
         OpenIEExtractionParams paramsOpenIE = (OpenIEExtractionParams) params;
         String userStoryString = userStory.getGoal();
 
@@ -90,7 +90,7 @@ public class OpenIEUSExtractor implements USExtractor {
         if (paramsOpenIE.isFilterUSTopicsCompositions()) {
             topics = filterCompositeTopics(topics, paramsOpenIE);
         }
-        return new NLPResultSingle(relationships, topics);
+        return new ExtractionResult(relationships, topics);
     }
 
     private boolean check_sim_threshold(List<Topic> topics, Topic topic, OpenIEExtractionParams params) {

@@ -1,6 +1,6 @@
 package de.uhd.ifi.se.accompleteness.extractor;
 
-import de.uhd.ifi.se.accompleteness.model.NLPResultSingle;
+import de.uhd.ifi.se.accompleteness.model.ExtractionResult;
 import de.uhd.ifi.se.accompleteness.exception.TokenNotFoundException;
 import de.uhd.ifi.se.accompleteness.model.UserStory;
 
@@ -19,6 +19,6 @@ public interface USExtractor {
      * as the verb or the subject could not be identified by the Stanford
      * CoreNLP tools.
      */
-    public NLPResultSingle extract(UserStory userStory, ExtractionParams params);
+    public ExtractionResult extract(UserStory userStory, ExtractionParams params);
 
 }

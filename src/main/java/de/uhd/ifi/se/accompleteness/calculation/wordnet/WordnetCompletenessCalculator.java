@@ -6,7 +6,7 @@ import java.util.Map;
 import de.uhd.ifi.se.accompleteness.calculation.CalculationParams;
 import de.uhd.ifi.se.accompleteness.calculation.CompletenessCalculator;
 import de.uhd.ifi.se.accompleteness.model.CompletenessCalcResult;
-import de.uhd.ifi.se.accompleteness.model.NLPResultSingle;
+import de.uhd.ifi.se.accompleteness.model.ExtractionResult;
 import de.uhd.ifi.se.accompleteness.model.Topic;
 import de.uhd.ifi.se.accompleteness.model.UserStory;
 import net.sf.extjwnl.JWNLException;
@@ -21,7 +21,7 @@ import net.sf.extjwnl.dictionary.Dictionary;
 public class WordnetCompletenessCalculator implements CompletenessCalculator {
 
     @Override
-    public CompletenessCalcResult calculate_completeness(NLPResultSingle usResult, NLPResultSingle acResult, CalculationParams params, UserStory userStory)
+    public CompletenessCalcResult calculate_completeness(ExtractionResult usResult, ExtractionResult acResult, CalculationParams params, UserStory userStory)
             throws JWNLException, CloneNotSupportedException, Exception {
         WordnetCalculationParams calcParams = (WordnetCalculationParams) params;
         int SIMILAR_THRESHHOLD = calcParams.getWordnetDistanceThreshold();
