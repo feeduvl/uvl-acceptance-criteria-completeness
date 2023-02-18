@@ -24,6 +24,7 @@ public class UvlResponse {
     private static final Logger LOG = LoggerFactory.getLogger(UvlResponse.class);
 
     public static JsonObject getJsonFromResults(List<CompletenessCalcResult> results) {
+        LOG.debug("Entering getJsonFromResults with" + results);
         JsonObject mainObject = new JsonObject();
         mainObject.add("doc_topic", null);
         mainObject.add("codes", null);
@@ -103,16 +104,8 @@ public class UvlResponse {
             return mapping;
         }
 
-        public void setMapping(JsonObject mapping) {
-            this.mapping = mapping;
-        }
-
         public int getNextTopicIncluded() {
             return nextWordsNum;
-        }
-
-        public void setNextTopicIncluded(int nextWordsNum) {
-            this.nextWordsNum = nextWordsNum;
         }
 
         private int nextWordsNum;
@@ -120,10 +113,6 @@ public class UvlResponse {
 
         public int getNextWordsCount() {
             return nextWordsCount;
-        }
-
-        public void setNextWordsCount(int nextWordsCount) {
-            this.nextWordsCount = nextWordsCount;
         }
 
         public MappingReturnObject(JsonObject mapping, int nextWordsNum, int nextWordsCount) {
